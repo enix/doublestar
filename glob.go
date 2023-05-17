@@ -361,7 +361,7 @@ func indexMatchedOpeningAlt(s string) int {
 }
 
 // Returns true if the path exists
-func (g *glob) exists(fsys fs.FS, name string, beforeMeta bool) (fs.FileInfo, bool, error) {
+func (g *glob) existsDefaultImpl(fsys fs.FS, name string, beforeMeta bool) (fs.FileInfo, bool, error) {
 	// name might end in a slash, but Stat doesn't like that
 	namelen := len(name)
 	if namelen > 1 && name[namelen-1] == '/' {

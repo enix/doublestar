@@ -1,9 +1,14 @@
 package doublestar
 
-import "strings"
+import (
+	"io/fs"
+	"strings"
+)
 
 // glob is an internal type to store options during globbing.
 type glob struct {
+	exists func(fsys fs.FS, name string, beforeMeta bool) (fs.FileInfo, bool, error)
+
 	failOnIOErrors        bool
 	failOnPatternNotExist bool
 	filesOnly             bool
@@ -20,6 +25,11 @@ func newGlob(opts ...GlobOption) *glob {
 	for _, opt := range opts {
 		opt(g)
 	}
+
+	if g.exists == nil {
+		g.exists = g.existsDefaultImpl
+	}
+
 	return g
 }
 
@@ -80,6 +90,12 @@ func WithFilesOnly() GlobOption {
 func WithNoFollow() GlobOption {
 	return func(g *glob) {
 		g.noFollow = true
+	}
+}
+
+func WithStatFunc(fn func(fsys fs.FS, name string, beforeMeta bool) (fs.FileInfo, bool, error)) GlobOption {
+	return func(g *glob) {
+		g.exists = fn
 	}
 }
 

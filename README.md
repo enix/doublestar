@@ -1,5 +1,7 @@
 # doublestar
 
+> :warning: This library fork is used by [x509-certificate-exporter](https://github.com/enix/x509-certificate-exporter) because it requires a custom `fs.Stat` function to work properly. This is the only modification that was made to this library.
+
 Path pattern matching and globbing supporting `doublestar` (`**`) patterns.
 
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/bmatcuk/doublestar)](https://pkg.go.dev/github.com/bmatcuk/doublestar/v4)
@@ -87,7 +89,6 @@ then use this function.
 
 Note: users should _not_ count on the returned error,
 `doublestar.ErrBadPattern`, being equal to `path.ErrBadPattern`.
-
 
 ### PathMatch
 
@@ -197,11 +198,11 @@ type GlobWalkFunc func(path string, d fs.DirEntry) error
 func GlobWalk(fsys fs.FS, pattern string, fn GlobWalkFunc, opts ...GlobOption) error
 ```
 
-GlobWalk calls the callback function `fn` for every file matching pattern.  The
+GlobWalk calls the callback function `fn` for every file matching pattern. The
 syntax of pattern is the same as in Match() and the behavior is the same as
 Glob(), with regard to limitations (such as patterns containing `/./`, `/../`,
 or starting with `/`). The pattern may describe hierarchical names such as
-usr/*/bin/ed.
+usr/\*/bin/ed.
 
 GlobWalk may have a small performance benefit over Glob if you do not need a
 slice of matches because it can avoid allocating memory for the matches.
@@ -238,7 +239,7 @@ func FilepathGlob(pattern string, opts ...GlobOption) (matches []string, err err
 
 FilepathGlob returns the names of all files matching pattern or nil if there is
 no matching file. The syntax of pattern is the same as in Match(). The pattern
-may describe hierarchical names such as usr/*/bin/ed.
+may describe hierarchical names such as usr/\*/bin/ed.
 
 FilepathGlob ignores file system errors such as I/O errors reading directories
 by default. The only possible returned error is `ErrBadPattern`, reporting that
@@ -251,10 +252,10 @@ Note: FilepathGlob is a convenience function that is meant as a drop-in
 replacement for `path/filepath.Glob()` for users who don't need the
 complication of io/fs. Basically, it:
 
-* Runs `filepath.Clean()` and `ToSlash()` on the pattern
-* Runs `SplitPattern()` to get a base path and a pattern to Glob
-* Creates an FS object from the base path and `Glob()s` on the pattern
-* Joins the base path with all of the matches from `Glob()`
+- Runs `filepath.Clean()` and `ToSlash()` on the pattern
+- Runs `SplitPattern()` to get a base path and a pattern to Glob
+- Creates an FS object from the base path and `Glob()s` on the pattern
+- Joins the base path with all of the matches from `Glob()`
 
 Returned paths will use the system's path separator, just like
 `filepath.Glob()`.
@@ -270,7 +271,7 @@ func SplitPattern(p string) (base, pattern string)
 
 SplitPattern is a utility function. Given a pattern, SplitPattern will return
 two strings: the first string is everything up to the last slash (`/`) that
-appears _before_ any unescaped "meta" characters (ie, `*?[{`).  The second
+appears _before_ any unescaped "meta" characters (ie, `*?[{`). The second
 string is everything after that slash. For example, given the pattern:
 
 ```
@@ -278,7 +279,7 @@ string is everything after that slash. For example, given the pattern:
              ^----------- split here
 ```
 
-SplitPattern returns "../../path/to" and "meta*/**". This is useful for
+SplitPattern returns "../../path/to" and "meta\*/\*\*". This is useful for
 initializing os.DirFS() to call Glob() because Glob() will silently fail if
 your pattern includes `/./` or `/../`. For example:
 
@@ -303,7 +304,7 @@ func ValidatePattern(s string) bool
 ```
 
 Validate a pattern. Patterns are validated while they run in Match(),
-PathMatch(), and Glob(), so, you normally wouldn't need to call this.  However,
+PathMatch(), and Glob(), so, you normally wouldn't need to call this. However,
 there are cases where this might be useful: for example, if your program allows
 a user to enter a pattern that you'll run at a later time, you might want to
 validate it.
@@ -325,13 +326,13 @@ requires '/' separators, even if your OS uses something else.
 
 **doublestar** supports the following special terms in the patterns:
 
-Special Terms | Meaning
-------------- | -------
-`*`           | matches any sequence of non-path-separators
-`/**/`        | matches zero or more directories
-`?`           | matches any single non-path-separator character
-`[class]`     | matches any single non-path-separator character against a class of characters ([see "character classes"])
-`{alt1,...}`  | matches a sequence of characters if one of the comma-separated alternatives matches
+| Special Terms | Meaning                                                                                                   |
+| ------------- | --------------------------------------------------------------------------------------------------------- |
+| `*`           | matches any sequence of non-path-separators                                                               |
+| `/**/`        | matches zero or more directories                                                                          |
+| `?`           | matches any single non-path-separator character                                                           |
+| `[class]`     | matches any single non-path-separator character against a class of characters ([see "character classes"]) |
+| `{alt1,...}`  | matches a sequence of characters if one of the comma-separated alternatives matches                       |
 
 Any character with a special meaning can be escaped with a backslash (`\`).
 
@@ -344,12 +345,12 @@ pattern you're looking for is `path/to/**/*.txt`.
 
 Character classes support the following:
 
-Class      | Meaning
----------- | -------
-`[abc]`    | matches any single character within the set
-`[a-z]`    | matches any single character in the range
-`[^class]` | matches any single character which does *not* match the class
-`[!class]` | same as `^`: negates the class
+| Class      | Meaning                                                       |
+| ---------- | ------------------------------------------------------------- |
+| `[abc]`    | matches any single character within the set                   |
+| `[a-z]`    | matches any single character in the range                     |
+| `[^class]` | matches any single character which does _not_ match the class |
+| `[!class]` | same as `^`: negates the class                                |
 
 ## Performance
 
@@ -382,6 +383,7 @@ can cause a large number of reads when globbing as it will need to recursively
 traverse your filesystem.
 
 ## Sponsors
+
 I started this project in 2014 in my spare time and have been maintaining it
 ever since. In that time, it has grown into one of the most popular globbing
 libraries in the Go ecosystem. So, if **doublestar** is a useful library in
